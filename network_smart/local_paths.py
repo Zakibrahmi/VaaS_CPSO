@@ -1,6 +1,6 @@
 import math
 from collections import defaultdict
-from utilFunctions import addEdge, getAllPathsRegions
+from utils.util import addEdge, getAllPathsRegions
 
 class local_paths():    
     

@@ -17,7 +17,7 @@ import os
 import time
 import math
 import random
-from utilFunctions import generateRandomVector
+from utils.util import generateRandomVector
 class PSO_CP(Optimizer):
     """
     The original version of: PSO with composite particles (PSO-CP),

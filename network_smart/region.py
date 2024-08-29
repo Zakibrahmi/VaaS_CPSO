@@ -19,15 +19,19 @@ class Region():
             x = x+1        
         #Set up of edges 
         for e in range(len(g.es)):
-            g.es[e]["distance"]= random.uniform(20, 100) #Disance between 20 and 100 km
-            g.es[e]["maxSpeed"]= random.uniform(40, 120) #Speed betwwen 40 and 120 km/h
-            g.es[e]["weight"]=  (g.es[e]["distance"] + g.es[e]["maxSpeed"])/2
+            g.es[e]["weight"]= random.uniform(20, 100) #Disance between 20 and 100 km
+            #g.es[e]["maxSpeed"]= random.uniform(40, 120) #Speed betwwen 40 and 120 km/h
+            #g.es[e]["weight"]=  g.es[e]["distance"] 
            
         self.linkedRegions = [] # Array of dictionnary. [{"Region": "R1", "Nodes": [N1, N2, ..Nn]}, ..]
         self.graph =g
-    # parm: region, uuid, and arrayof frontier nodes. A link is dictionnary   {"Region": "R1", "Nodes": [N1, N2, ..Nn]}
-    # Linked Nodes shoudl belongs to current region and region
-    def addlinkedRegion(self, region, nodes):         
+    
+    def addlinkedRegion(self, region, nodes): 
+        """To link current region to another region "region" according to "nodes"        
+           # parms: 
+                region
+                uuid
+                nodes: array of frontier nodes. A link is dictionnary  {"Region": "R1", "Nodes": [N1, N2, ..Nn]}        """             
         
         exist = np.isin(np.array(nodes), np.array(self.graph.vs["id"]))
         if False not in exist:

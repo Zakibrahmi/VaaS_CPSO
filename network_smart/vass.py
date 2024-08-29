@@ -22,9 +22,10 @@ class VaaS():
     # To make vaas instance comparable        
     def __eq__(self, other):       
         return self.uid == other.uid
+    
     def __hash__(self):
         return hash((self.uid,))
-         
+    
     def __str__(self):
         return str(self.uid)
     
@@ -65,10 +66,11 @@ class VaaS():
             composition_vaass: the composition
          Return: True or False
         """
-        number_violation =0
+        number_violation =1
+       
         if QoS_user['place'] > self.number_places:
           number_violation +=1
-        if QoS_user['place'] > self.number_places:
+        if QoS_user['rating'] > self.rating:
           number_violation +=1
         
         return number_violation

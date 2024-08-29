@@ -2,12 +2,12 @@ from igraph import *
 import random
 import numpy as np
 from collections import defaultdict
-from local_paths import *
-from generateRegion import *
+from network_smart.local_paths import *
+from network_smart.region import *
 from mealpy import *
 import numpy as np
 from mealpy import IntegerVar, PSO, Problem
-from utilFunctions import *
+from utils.util import *
 """sumary_line
 
 Keyword arguments:

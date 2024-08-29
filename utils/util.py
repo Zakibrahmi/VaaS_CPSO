@@ -3,9 +3,15 @@ import random
 import numpy as np
 from collections import defaultdict
 #from local_paths import *
-from generateRegion import *
+from network_smart.region import *
 import math
+import csv
 
+def store_cvs(file, data):
+    with open(file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+        
 def genEdge(nodes, numberEdge, seed=None, p=0.5):
     
     """ 
@@ -15,15 +21,8 @@ def genEdge(nodes, numberEdge, seed=None, p=0.5):
        :Parameters:
        		- 'nodes': the set of nodes
         	- 'p': probability for edge creation
-         	- 'seed': seed for random number generator (default=None) 
-            
-    
-    if not seed is None: 
-        random.seed(seed)     
-        for u in xrange(n): 
-          for v in xrange(u+1,n): 
-              if random.random() < p: 
-                   G.add_edge(u,v)
+         	- 'seed': seed for random number generator (default=None)            
+
 	"""
     edges = set()
     nodeList = range(len(nodes))
