@@ -21,7 +21,7 @@ from composition.composite_vaas import composite_vaas
 from utils.util import *
 
 from network_smart.vass import VaaS
-from utils.util import generateRandomVector
+#from utils.util import generateRandomVector
 
 class PSO_VaaS():
 
@@ -191,10 +191,10 @@ class PSO_VaaS():
         #print(self.unused_vaass)
         for c in compositions:
             self.all_solutions.append(composite_vaas(c))  
-        data =[["Iteration", "best_fintess"] ]                 
+        data =[["best_fintess", "cost", "availability", "reputation", "time"] ]                 
         for it in range(0, iterations):              
             for sol in self.all_solutions:
-                data.append([it, self.best_solution.fitnes])
+               
                 # Evaluaiton
                 cost, time, reputation, availability, total, vaas= sol.CVaaS_evaluation(regions_path, self.weights, self.set_vaaSs) 
                 # Update best solution
@@ -204,7 +204,8 @@ class PSO_VaaS():
                 adjusted, worst = self.cVaaS_adjustment(sol.solution)
                 sol.solution = adjusted
                 sol.update_worst_vaas(worst)
-            
+        cost, time, reputation, availability, total, vaas= self.best_solution.CVaaS_evaluation(regions_path, self.weights, self.set_vaaSs) 
+        data.append([self.best_solution.fitnes, cost,  availability, reputation, time])
         store_cvs("results/test.csv", data)              
 
     
