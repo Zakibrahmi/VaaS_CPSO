@@ -24,7 +24,7 @@ class network_region:
                 vertexs.add(v)
         return edges, vertexs
     
-    def regions_built(self, number_regions:int):
+    def regions_built(self, number_regions=3):
 
         edges, vertex = self.read_edges_vertexs_from_file()
         # Create the graph

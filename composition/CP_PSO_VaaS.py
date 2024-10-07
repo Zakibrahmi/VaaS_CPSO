@@ -191,7 +191,7 @@ class PSO_VaaS():
         #print(self.unused_vaass)
         for c in compositions:
             self.all_solutions.append(composite_vaas(c))  
-        data =[["best_fintess", "cost", "availability", "reputation", "time"] ]                 
+        data =[["best_fintess", "cost", "availability", "reputation", "time"]]                 
         for it in range(0, iterations):              
             for sol in self.all_solutions:
                
