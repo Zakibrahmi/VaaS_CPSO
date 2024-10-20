@@ -1,6 +1,7 @@
 from igraph import *
 import random
 import numpy as np
+import json
 
 class Region():
     
@@ -28,10 +29,9 @@ class Region():
         
             
         self.linkedRegions = [] # Array of dictionnary. [{"Region": "R1", "Nodes": [N1, N2, ..Nn]}, ..]
-        
-    
+            
     def addlinkedRegion(self, region, nodes): 
-        """To link current region to another region "region" according to "nodes"        
+        """ To link current region to another region "region" according to "nodes"        
            # parms: 
                 region
                 uuid
@@ -43,11 +43,11 @@ class Region():
             print("connot link")
             
     # check if the current region is contains a node n
-    def containsNode(self, n):        
-        return n in np.array(self.graph.vs["id"])
+    def containsNode(self, n):    
+        return n in  list(self.graph.vs["id"])
     
     def getName(self):
-        return self.name
+        return str(self.name)
     
     def printVertexRegion(self):        
         for e in self.graph.vs:
@@ -65,7 +65,7 @@ class Region():
     def getFrontierNode(self, regionUid): 
         
         for r in self.linkedRegions:
-            if r["Region"] == regionUid:
+            if r["Region"].getName() == str(regionUid):
                 return r["Nodes"][0]
     
     def getbestPath(self, source, destination):
@@ -87,7 +87,32 @@ class Region():
        
         return {"uid_region":self.getName(), "nodes": list(set(path_uid)), "weight":distance } # name of the region, path array of id vertex
         
-        
+    def save_to_json(self):
+        """
+        Function, which convert an object region to a json file
+        """        
+        graph_dict = {
+            "nodes": [
+                    {"id": v.index, "label": v["id"]} for v in self.graph.vs 
+                ],
+            "edges": [
+                   {"source": e.source, "target": e.target, "weight": e["weight"]} for e in self.graph.es
+                ]
+           }
+        region_json ={
+            "numEdges": self.numEdges,
+            "numberNodes" : self.numberNodes, 
+            "name" : self.name,
+            "linked_regions": self.linkedRegions,
+            "graph":graph_dict
+        }
+        # File to store region  as a json file
+        filename = f"dataset/region_{self.name}.json"
+
+        # Save the dictionary to a JSON file
+        with open(filename, 'w') as json_file:
+            json.dump(region_json, json_file, indent=4)
+
      
         
         

@@ -54,12 +54,11 @@ def getAllPathsRegions(graph, u, d, visited, path, pathsSet):
         # Mark the current node as visited and store in path
         visited[u]= True
         path.append(u)
- 
         # If current vertex is same as destination, then print
         # current path[]
+        print(graph)
         current_path = path.copy()
-        current_path.append(u)
-        
+        current_path.append(u)        
         if u == d:
             pathsSet.append(current_path)
         
@@ -77,7 +76,6 @@ def getAllPathsRegions(graph, u, d, visited, path, pathsSet):
 
 def visualizeGraph(graphobject, outputname, ):
     visual_style = {}
-
     out_name = outputname+".png"
 
     # Set bbox and margin

@@ -36,7 +36,7 @@ class network_region:
         g.vs['id'] = g.vs['name']
         
         # Find connected components
-        components =  g.community_leading_eigenvector()
+        components =  g.community_leading_eigenvector(6)
         #print(components)
         regions ={}
         for i, community in enumerate(components):

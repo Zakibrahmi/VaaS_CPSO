@@ -3,24 +3,35 @@ from typing import List, Union, Tuple, Dict
 import numpy as np
 import random
 from utils.util import *
+import ast
 
 
 class VaaS():
     
-    def __init__(self, uid, facilities, QoS, Covred_Regions, number_places=None, rating=None):
-        """_summary
-		Args:
-			uid (string): uid of the Vaas
-			facilities (Array of String): transport facilities offered by a VaaS (e.g., connectivity)
-			QoS (Dictionay): Dictionary of QoS metrics such as cost per Km,  average speed, and rating: QoS = {'cost': 10, 'speed':20, 'availability':0.9. 'reputation': 0.8}.
-			Covred_Regions (Array) : Array of regions covred by VaaS
+    def __init__(self, data=None, uid=None, facilities=None, QoS=None, Covred_Regions=None, number_places=None, rating=None):
+        """ summary
+        Args:
+            uid (string): uid of the Vaas
+            facilities (Array of String): transport facilities offered by a VaaS (e.g., connectivity)
+            QoS (Dictionay): Dictionary of QoS metrics such as cost per Km,  average speed, and rating: QoS = {'cost': 10, 'speed':20, 'availability':0.9. 'reputation': 0.8}.
+            Covred_Regions (Array) : Array of regions covred by VaaS
+            data: contains vaas attribute values. If data not None, we create vaas from data, which is pandas Serie
         """
-        self.uid = uid
-        self.facilities= facilities
-        self.QoS = QoS
-        self.covered_regions = Covred_Regions
-        self.number_places = number_places
-        self.rating= rating
+        if data is not None:
+            self.QoS = {'cost': data["cost"], 'speed':data["speed"], 'availability':data["availability"], 'reputation': data["reputation"]}
+            self.uid=data["uid"]
+            self.facilities=["facility"]
+            self.covered_regions =ast.literal_eval(data["coverd_regions"])
+            self.number_places= data["number_places"]
+            self.rating= rating= data["rating"]
+        
+        else:
+            self.uid = uid
+            self.facilities= facilities
+            self.QoS = QoS
+            self.covered_regions = Covred_Regions
+            self.number_places = number_places
+            self.rating= rating
         self.fitness = 0
     
     # To make vaas instance comparable        
@@ -37,6 +48,9 @@ class VaaS():
         self.fitness= new_fitness
     def get_convered_regions(self):
         return len(self.covered_regions)
+    
+    def covred_regions(self):
+        return set(map(int, self.covered_regions))
     
     def  get_cost(self, region_distance=None): 
 
@@ -57,6 +71,7 @@ class VaaS():
     
     def get_reputation(self):
         return self.QoS.get("reputation")
+    
     def generate_random_normal(min_value, max_value, mean=None, std_dev=None, size=1):
         # Set default mean and std_dev if not provided
         if mean is None:
@@ -92,8 +107,7 @@ class VaaS():
     
     @classmethod
     def generate_random_vaas(clf, set_name_regions, set_facilities, number_vaas:int = 50):
-        """This function generates random number_vaas
-        
+        """This function generates random number_vaas        
         Keyword arguments:
             number_vaas: Number of vaas to be generate
             number_region: Number of region which indicates the set of region to be covred by vaaSs
@@ -104,7 +118,6 @@ class VaaS():
         for i in range(1, number_vaas+1):
             #randmly select the set of covred regions
             coverd_regions = random.sample(set_name_regions, random.randint(1, len(set_name_regions)-1))
-            #QoS ={'cost': 1, 'speed':150, 'availability':0.9, 'reputation': 0.9}
             cost = clf.generate_random_normal(1, 5) # cost from 1 to 5
             speed = clf.generate_random_normal(80, 120) #
             availability = clf.generate_random_normal(0.1, 0.98) 
@@ -113,12 +126,13 @@ class VaaS():
             facility =  random.choice(set_facilities)  
             number_places= random.choice([2,4,6])
             rating= random.choice([1, 2, 3, 4, 5]) 
-            # Create vaas
-            v = VaaS(i, facility, QoS, coverd_regions, number_places, rating=rating)
+            # Create vaas data=None, uid=None, facilities=None, QoS=None, Covred_Regions=None, number_places=None, rating=None
+            v = VaaS(uid=i, facilities=facility, QoS=QoS, Covred_Regions=coverd_regions, number_places=number_places, rating=rating)
             vaas_set.add(v)
             data.append([i, cost, availability, reputation, speed, coverd_regions, facility, number_places, rating])
 
         store_cvs(f"dataset/vaas_{number_vaas}.csv", data) 
+        return vaas_set
             
 
     

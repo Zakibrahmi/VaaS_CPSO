@@ -49,6 +49,7 @@ class composite_vaas():
 
         # calcule cost, time, availability, and reputaiton of the composition
         vaaSs_composite={} # couple <vaas, fitness>
+        
         for vaas in self.solution:            
             reputation+= vaas["vaas"].get_reputation()
             availability *=vaas["vaas"].get_availability()
