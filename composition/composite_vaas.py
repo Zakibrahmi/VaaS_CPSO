@@ -1,17 +1,26 @@
 
+from utils.util import *
+from mealpy import IntegerVar, WOA, Problem
 
-class composite_vaas():
+
+class composite_vaas(Problem):
 
     """ A composite Vaass, which is a solution, is a an array of dictionary: [{'uidvaas': vaas, 'regions': [array of traversed regions of the given path]}]	
     Keyword arguments:
     argument -- description
     Return: return_description
     """
-    def __init__(self, composite_solution):
+    def __init__(self, path_regions, weights,query,  set_vaas,composite_solution=None, bounds=None, minmax="min",  **kwargs):
         self.solution = composite_solution
         self.best_vaas =None
         self.worst_vaas = None
         self.fitnes =0
+        self.path_of_regions=path_regions
+        self.weights = weights
+        self.vaas_set = set_vaas
+        self.user_query = query
+        if bounds:
+            super().__init__(bounds, minmax, **kwargs)
     
     def update_current_solution(self, solution):
         self.current_solution = solution
@@ -26,48 +35,82 @@ class composite_vaas():
     def get_current_solution(self):
         return self.current_solution
     
-    def CVaaS_evaluation(self, path_of_regions, weights, set_vaaSs):
+    
+    def obj_func(self, x=None):
 
         """
         Evaluate a composit VaaSs (a candidate solution) 
-        A composit VaaSs has a the follwing stucture: [{'vaas':uid_vaas, 'regions':[id_region]}]        
+        A composit VaaSs has a the following stucture: [{'vaas':object_vaas, 'regions':[id_region]}]        
         Args:
-            composite_vaass: the composite VaaSs 
+            user_query
+            weights
             path_of_regions: path of regions that VaaSs in composite_vaass  can traversed
-            return: fintness            
+            set_vaaSs
+            return: fitness            
         """
+        # to be able to use the function as the objetcive function of PSO and others algorithms of mealpy
+        print(x)
+        if x is not None: # X is a solution from PSO for example, but not  CP_PSO
+            x_decoded = self.decode_solution(x)
+            x = x_decoded["vaas_var"]
+            # Transform solution x as arry of {'vaas": object_vaas, "regions": array of uid_region}
+            # x is a an array where each cell contains indice of vaas, and it's indice representes indice of region
+            solutionX=[]
+            tmp = x.copy()
+            for it in x: 
+              if it in tmp: # means that it not yet procedded
+                indices = self.find_indices(it, x)
+                solutionX.append({"vaas":self.find_vaas_By_Id(vaas_set=self.vaas_set, uid=it), "regions":indices})
+                tmp = [item for item in tmp if item != 3]
+            self.solution = solutionX
+        #print(self.path_of_regions)
+        
         cost =0
         time =0
         reputation =0
         availability =1
         # store a map of <region, distance> from the path
         region_distance ={}
-        for r in path_of_regions['regions']:
-            for p in path_of_regions['paths']:
-                if p['uid_region'] == r:
+        for r in self.path_of_regions['regions']:
+            for p in self.path_of_regions['paths']:
+                if str(p['uid_region']) == str(r):
                     region_distance.update({r:p['weight']})
 
-        # calcule cost, time, availability, and reputaiton of the composition
+        # Calcule cost, time, availability, and reputaiton of the composition
         vaaSs_composite={} # couple <vaas, fitness>
-        
+        penalty =0
         for vaas in self.solution:            
             reputation+= vaas["vaas"].get_reputation()
             availability *=vaas["vaas"].get_availability()
             cost_local =0
             time_local = 0
+            penalty_local=0
             for r in vaas["regions"]:
                 cost+= vaas["vaas"].get_cost(region_distance.get(r))
                 cost_local+=vaas["vaas"].get_cost(region_distance.get(r))
 
                 time+= vaas["vaas"].get_time(region_distance.get(r))
                 time_local+= vaas["vaas"].get_time(region_distance.get(r))
-            totale_vaas = weights[0]*cost_local + weights[1]*time_local + weights[2]*reputation + weights[3]*availability
+            penalty_local +=vaas["vaas"].violation(self.user_query['QoS'])
+            penalty += penalty_local
+
+            # Normalization of all value using log transformation
+            log_values= log_transform([cost_local, time_local, vaas["vaas"].get_reputation(), vaas["vaas"].get_availability(), penalty_local])
+            totale_vaas = self.weights[0]*log_values[0] + self.weights[1]*log_values[1] + self.weights[2]* log_values[2] + self.weights[3]*log_values[3] + log_values[4]
             vaas["vaas"].update_fitness(totale_vaas)
             vaaSs_composite.update({vaas["vaas"]:totale_vaas})
-        
-        totale = (weights[0]*cost + weights[1]*time + (weights[2]*reputation)/len(set_vaaSs) + weights[3]*availability)/len(self.solution)
+
+        # To penalize low reputation and availability 
+        reputation = reputation/len(self.vaas_set)
+        if reputation > 1: 
+            reputation = 1/reputation
+        if availability > 1:
+            availability = 1/availability
+
+        log_values = log_transform([cost, time, reputation, availability, penalty])
+        totale = self.weights[0]*log_values[0] + self.weights[1]*log_values[1] + self.weights[2]* log_values[2] + self.weights[3]*log_values[3] + log_values[4]
         self.fitnes = totale
-        return cost, time, (reputation/len(set_vaaSs)), availability, totale, vaaSs_composite
+        return totale # cost, time, reputation, availability, totale, vaaSs_composite
     
     def compare(self, other):
         if self.fitnes < other.fitnes:
@@ -79,6 +122,21 @@ class composite_vaas():
         for v in self.solution:
             vs.append(v["vaas"].uid)
         return {"solution": vs, "fitness":self.fitnes}
+    
+    def find_indices(self, arr, x):
+        # List comprehension to find all indices where x occurs in arr
+        #indices = [i for i, value in enumerate(arr) if value == x]
+        
+        return np.where(arr == x)[0]
+    
+    def find_vaas_By_Id(self, vaas_set, uid):
+        vaas=None
+        for v in vaas_set:
+            if str(v.uid) == str(uid):
+                vaas = v
+                break
+        return vaas
+
     
     
     

@@ -13,10 +13,7 @@ from mealpy.utils.logger import Logger
 from mealpy.utils.validator import Validator
 import concurrent.futures as parallel
 from functools import partial
-import os
-import time
-import math
-import random
+
 from composition.composite_vaas import composite_vaas
 from utils.util import *
 import copy
@@ -122,13 +119,13 @@ class PSO_VaaS():
     def cVaaS_adjustment(self, composition_Vaas):
         """ replacing the worst VaaS representative with a fitter one
         arguments:
-            composition_Vaas: a composiiton to be adjusted
+            composition_Vaas: a composition to be adjusted
         Return: adjusted composition, and the worst vaas of this composition
         """
         fitness_tmp = {}        
         for vaas in composition_Vaas:
             f = vaas["vaas"].fitness            
-            # to evaluate the worstness of a vaas we multply it's fitness by the number of violated QoS (place, rating)
+            # to evaluate the worstness of a vaas we multply it's fitness by the violated of QoS (place, rating)
             fitness_tmp.update({vaas["vaas"]:f*vaas["vaas"].violation(self.user_query['QoS'])}) 
         # sorted the dictionary of <vaas, vaas_fitness*number_violation>
         # the higher the vaas_fitness*number_violation is, the vaas in the more affecting the global fitness => vaas is the worest
@@ -192,27 +189,30 @@ class PSO_VaaS():
         #2. generate intiale solutions using candidate_CVaaS function
         compositions, unused = self.candidate_CVaaS(regions_path)
         # Intialize Best solution
-        self.best_solution = composite_vaas(compositions[0])
-        self.best_solution.CVaaS_evaluation(regions_path, self.weights, self.set_vaaSs) 
+        self.best_solution = composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=compositions[0])
+        self.best_solution.obj_func() 
         
         for c in compositions:
-            self.all_solutions.append(composite_vaas(c))  
+            self.all_solutions.append(composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=c))  
         data =[["best_fintess", "cost", "availability", "reputation", "time"]]                 
         for it in range(0, iterations):   
         
             for sol in self.all_solutions:               
                 # Evaluaiton
-                cost, time, reputation, availability, total, vaas= sol.CVaaS_evaluation(regions_path, self.weights, self.set_vaaSs) 
+                cost, time, reputation, availability, total, vaas= sol.obj_func() 
                 # Update best solution
+                #print(self.best_solution.fitnes)
                 if sol.compare(self.best_solution):
                     #print(self.best_solution.fitnes, sol.fitnes)
                     self.best_solution = copy.deepcopy(sol)
+                #print(self.best_solution.fitnes)
                     
                  # Ajustement
                 adjusted, worst = self.cVaaS_adjustment(sol.solution)
                 sol.solution = adjusted
                 sol.update_worst_vaas(worst)
-            cost, time, reputation, availability, total, vaas= self.best_solution.CVaaS_evaluation(regions_path, self.weights, self.set_vaaSs) 
+            cost, time, reputation, availability, total, vaas= self.best_solution.obj_func() 
+            #print("+++++++++++++++++++++++++++++++++++++++++")
             data.append([self.best_solution.fitnes, cost,  availability, reputation, time])
         store_cvs(f"results/result_{to_store_result}.csv", data)              
 

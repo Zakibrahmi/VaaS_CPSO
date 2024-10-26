@@ -40,7 +40,7 @@ class local_paths():
                     region = self.getRegionById(temp[i])
                     frontierNode = region.getFrontierNode(temp[i+1])
                     path = region.getbestPath(int(sourceNode), int(frontierNode))
-                    #print( path["nodes"])
+                   
                     sum_best_path_region +=path["weight"]
                     paths.append(path)
                     sourceNode = frontierNode            
@@ -98,7 +98,7 @@ class local_paths():
                 destination_regions.append(g)
                     
         # 2. Calculate all paths of regions    
-        #  Creat adjacency List of regions     
+        #  Create adjacency List of regions     
         self.getAdjacencyList()
         #  Get all paths. for each pair of source, destination
         for r in destination_regions:

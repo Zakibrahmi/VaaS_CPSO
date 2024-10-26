@@ -4,7 +4,7 @@ import numpy as np
 import random
 from utils.util import *
 import ast
-
+import os
 
 class VaaS():
     
@@ -97,27 +97,77 @@ class VaaS():
             composition_vaass: the composition
          Return: True or False
         """
-        number_violation =1       
+        penalty = 0      
         if QoS_user['place'] > self.number_places:
-          number_violation +=1
+            penalty += (QoS_user['place'] - self.number_places) * 5
         if QoS_user['rating'] > self.rating:
-          number_violation +=1
+            penalty += (QoS_user['rating'] - self.rating) * 5
         
-        return number_violation
+        return penalty
+    
+    def generate_subsets(self, set_name_regions, n):
+        """This function generates random subset form set_name_regions, 
+            ensuring that each region is selected at least once 
+        
+        Keyword arguments:
+        argument -- description
+        Return: return_description
+        """
+        selected_regions = set()  # To keep track of selected regions across all iterations
+        subsets = []  # List to hold the n subsets
+
+        for _ in range(n):
+            subset = set()  # Use a set to ensure uniqueness
+
+            # If there are regions that haven't been selected yet, select one of them
+            if len(selected_regions) < len(set_name_regions):
+                remaining_regions = list(set(set_name_regions) - selected_regions)
+                chosen_region = random.choice(remaining_regions)
+                subset.add(chosen_region)  # Add chosen region to the subset
+                selected_regions.add(chosen_region)  # Mark as selected
+            
+            # Fill the rest of the subset by sampling from the entire set
+            remaining_samples_needed = random.randint(1, len(set_name_regions) - len(subset))
+            additional_samples = set(random.sample(set_name_regions, remaining_samples_needed))
+            
+            # Add the additional samples to the subset
+            subset.update(additional_samples)
+            print(subset)
+            
+            subsets.append(subset)  # Add the subset to the list of subsets
+        return subsets
     
     @classmethod
-    def generate_random_vaas(clf, set_name_regions, set_facilities, number_vaas:int = 50):
+    def generate_random_vaas(clf, set_name_regions, set_facilities, path_to_store, number_vaas:int = 50):
         """This function generates random number_vaas        
         Keyword arguments:
             number_vaas: Number of vaas to be generate
-            number_region: Number of region which indicates the set of region to be covred by vaaSs
+            set_name_regions: Indicates the set of region to be covred by vaaSs
+            set_facilities: set of faclilities 
         Return: List of vaas and csv file contains the list of vaas 
         """
         vaas_set =set()
+        selected_regions = set()  # To keep track of selected regions across all iterations
+        subsets = []  # List to hold the n subsets
         data =[["uid", "cost", "availability", "reputation", "speed", "coverd_regions", "facility", "number_places", "rating"]]  
-        for i in range(1, number_vaas+1):
-            #randmly select the set of covred regions
-            coverd_regions = random.sample(set_name_regions, random.randint(1, len(set_name_regions)-1))
+        for i in range(0, number_vaas):
+            # Randmly select the set of covred regions: You ensure that each region at least is selected once
+            subset = set()  # Use a set to ensure uniqueness
+            # If there are regions that haven't been selected yet, select one of them
+            if len(selected_regions) < len(set_name_regions):
+                remaining_regions = list(set(set_name_regions) - selected_regions)
+                chosen_region = random.choice(remaining_regions)
+                subset.add(chosen_region)  # Add chosen region to the subset
+                selected_regions.add(chosen_region)  # Mark as selected
+            
+            # Fill the rest of the subset by sampling from the entire set
+            remaining_samples_needed = random.randint(1, len(set_name_regions) - len(subset))
+            additional_samples = set(random.sample(set_name_regions, remaining_samples_needed))            
+            # Add the additional samples to the subset
+            subset.update(additional_samples)       
+            coverd_regions = list(subset.copy())
+
+            #coverd_regions = random.sample(set_name_regions, random.randint(1, len(set_name_regions)-1))
             cost = clf.generate_random_normal(1, 5) # cost from 1 to 5
             speed = clf.generate_random_normal(80, 120) #
             availability = clf.generate_random_normal(0.1, 0.98) 
@@ -131,8 +181,27 @@ class VaaS():
             vaas_set.add(v)
             data.append([i, cost, availability, reputation, speed, coverd_regions, facility, number_places, rating])
 
-        store_cvs(f"dataset/vaas_{number_vaas}.csv", data) 
+        store_cvs(f"{path_to_store}vaas_{number_vaas}.csv", data) 
         return vaas_set
+    
+    @classmethod
+    def create_vaas_datasets(clf, number_vaas_per_dataset, path_to_store, set_name_regions, set_facilities ):
+        """ This function implements the generation of datasets of vaas.
+            Each dataset is stored on a sperated csv file.        
+        Aarguments:
+            number_vaas_per_dataset: array of integer. Each integer indicated the number of vaas to be generate
+            path_to_store: path to store files
+
+        Return: set of csv files.
+        """
+        for num_vaas in number_vaas_per_dataset:   
+            csv_file = f"{path_to_store}vaas_{num_vaas}.csv"
+            if not os.path.exists(csv_file):      
+                clf.generate_random_vaas(set_name_regions, set_facilities, path_to_store, num_vaas)
+            else:
+                print(f"vaas_{num_vaas}.csv exist!")
+
+
             
 
     

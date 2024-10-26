@@ -1,24 +1,17 @@
-# Given set of tuples
-tuples = [(1, 2), (2, 3), (3, 4), (4, 5), (1, 5), (5, 6), 
-          (6, 7), (7, 8), (8, 6), (8, 9), (9, 10), (10, 11), 
-          (11, 12), (12, 13)]
+import numpy as np
 
-# Array of items to check for in the first position
-array = [1, 2, 3, 4,  5]
+def log_transform(values, desired_sum=None):
+    log_values = [np.log1p(value) for value in values]  # np.log1p is used to handle log(0) case
+    if desired_sum is not None:
+        log_sum = sum(log_values)
+        adjusted_values = [value / log_sum * desired_sum for value in log_values]
+    else:
+        adjusted_values = log_values
+    return adjusted_values
 
-# Find tuples where the first item is in the array and the second item is not
-filtered_tuples = [t for t in tuples if t[0] in array and t[1] not in array]
+values = [3.6365155159836138, 0.7600834638388854, 0.023977474695476668, 92.31878054871922]
+desired_sum = None  # Set to None to keep the natural sum
+scaled_values = log_transform(values, desired_sum)
 
-# Define a list of tuples
-array_of_tuples = [(1, 2), (3, 4), (5, 6), (7, 8)]
-
-# Define the tuple to check
-item1, item2 = 3, 4
-tuple_to_check = (item1, item2)
-reversed_tuple = (item2, item1)
-
-# Check if either the tuple or its reversed form exists in the list
-if tuple_to_check in array_of_tuples or reversed_tuple in array_of_tuples:
-    print(f"One of the tuples {tuple_to_check} or {reversed_tuple} exists in the list.")
-else:
-    print(f"Neither the tuple {tuple_to_check} nor {reversed_tuple} exists in the list.")
+print(f"Scaled values: {scaled_values}")
+print(f"Sum of scaled values: {sum(scaled_values)}")

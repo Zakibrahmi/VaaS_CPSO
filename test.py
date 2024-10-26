@@ -1,50 +1,39 @@
-from igraph import Graph, plot
-import random
+import igraph as ig
 
-def create_region(num_vertices, num_edges):
-    """ Create a random region as a graph. """
-    region = Graph()
-    region.add_vertices(num_vertices)
+# Function to combine a set of graphs with common nodes into a new graph
+def combine_graphs(graphs):
+    combined_graph = ig.Graph(directed=True)
+    node_mapping = {}
     
-    # Set names for each vertex
-    region.vs["name"] = [f"{i}" for i in range(num_vertices)]
+    for graph in graphs:
+        for vertex in graph.vs:
+            if vertex['name'] not in node_mapping:
+                node_mapping[vertex['name']] = combined_graph.add_vertex(name=vertex['name'])
+        
+        for edge in graph.es:
+            source = graph.vs[edge.source]['name']
+            target = graph.vs[edge.target]['name']
+            combined_graph.add_edge(node_mapping[source], node_mapping[target], **edge.attributes())
     
-    # Ensure we don't add more edges than possible in a simple graph
-    possible_edges = [(i, j) for i in range(num_vertices) for j in range(num_vertices) if i != j]
-    random_edges = random.sample(possible_edges, min(num_edges, len(possible_edges)))
-    
-    region.add_edges(random_edges)
-    return region
+    return combined_graph
 
-# Parameters for regions
-num_regions = 5
-num_vertices_per_region = 5
-max_edges_per_region = 6
+# Example graphs
+g1 = ig.Graph(directed=True)
+g1.add_vertices(['A', 'B', 'C'])
+g1.add_edges([('A', 'B'), ('B', 'C')])
 
-# Create regions
-regions = [create_region(num_vertices_per_region, max_edges_per_region) for _ in range(num_regions)]
+g2 = ig.Graph(directed=True)
+g2.add_vertices(['A', 'D', 'E'])
+g2.add_edges([('A', 'D'), ('D', 'E')])
 
-# Create the main graph
-main_graph = Graph()
+g3 = ig.Graph(directed=True)
+g3.add_vertices(['C', 'F', 'G'])
+g3.add_edges([('C', 'F'), ('F', 'G')])
 
-# Add regions as vertices in the main graph
-main_graph.add_vertices(num_regions)
+# Combine the graphs
+combined_graph = combine_graphs([g1, g2, g3])
 
-# Create an edge list to connect regions
-for i in range(num_regions):
-    for j in range(i + 1, num_regions):
-        # Randomly connect regions with a probability
-        if random.random() > 0.5:  # Adjust probability as needed
-            main_graph.add_edge(i, j)
+# Print the combined graph
+print(combined_graph)
 
-# Print and visualize regions
-for idx, region in enumerate(regions):
-    print(f"Region {idx + 1} vertices:", region.vs["name"])  # Now this will work
-    print(f"Region {idx + 1} edges:", region.get_edgelist())
 
-# Plot each region and the main graph
-for idx, region in enumerate(regions):
-    plot(region, layout=region.layout("fr"), vertex_label=region.vs["name"], bbox=(300, 300), margin=20, target=f"region_{idx + 1}.png")
-
-# Plot main graph connecting the regions
-plot(main_graph, layout=main_graph.layout("fr"), vertex_label=[f"Region {i+1}" for i in range(num_regions)], bbox=(400, 400), margin=20, target="main_graph.png")

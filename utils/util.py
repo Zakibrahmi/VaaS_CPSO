@@ -56,7 +56,6 @@ def getAllPathsRegions(graph, u, d, visited, path, pathsSet):
         path.append(u)
         # If current vertex is same as destination, then print
         # current path[]
-        print(graph)
         current_path = path.copy()
         current_path.append(u)        
         if u == d:
@@ -109,6 +108,11 @@ def generateRandomVector(point1, point2):
     vec = np.abs(point1 + random.uniform(0, 1) * (point1 -point2))
     return (np.ceil(vec)).astype(int)
 
-#r1= Region(1, 4,3,0)
-#for i in r1.graph.vs:
- #   print(i)
+def log_transform(values, desired_sum=None):
+    log_values = [np.log1p(value) for value in values]  # np.log1p is used to handle log(0) case
+    if desired_sum is not None:
+        log_sum = sum(log_values)
+        adjusted_values = [value / log_sum * desired_sum for value in log_values]
+    else:
+        adjusted_values = log_values
+    return adjusted_values
