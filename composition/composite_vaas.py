@@ -10,7 +10,7 @@ class composite_vaas(Problem):
     argument -- description
     Return: return_description
     """
-    def __init__(self, path_regions, weights,query,  set_vaas,composite_solution=None, bounds=None, minmax="min",  **kwargs):
+    def __init__(self, path_regions, weights,query,  set_vaas,composite_solution=None, bounds=None, minmax="min", objective_function="all", **kwargs):
         self.solution = composite_solution
         self.best_vaas =None
         self.worst_vaas = None
@@ -19,6 +19,7 @@ class composite_vaas(Problem):
         self.weights = weights
         self.vaas_set = set_vaas
         self.user_query = query
+        self.objectiveF= objective_function # can be cost, availability, reputation, or all (fitness function)
         if bounds:
             super().__init__(bounds, minmax, **kwargs)
     
@@ -49,7 +50,7 @@ class composite_vaas(Problem):
             return: fitness            
         """
         # to be able to use the function as the objetcive function of PSO and others algorithms of mealpy
-        print(x)
+       
         if x is not None: # X is a solution from PSO for example, but not  CP_PSO
             x_decoded = self.decode_solution(x)
             x = x_decoded["vaas_var"]
@@ -110,6 +111,14 @@ class composite_vaas(Problem):
         log_values = log_transform([cost, time, reputation, availability, penalty])
         totale = self.weights[0]*log_values[0] + self.weights[1]*log_values[1] + self.weights[2]* log_values[2] + self.weights[3]*log_values[3] + log_values[4]
         self.fitnes = totale
+        if self.objectiveF == "reputation":
+            return reputation
+        if self.objectiveF == "cost":
+            return cost
+        if self.objectiveF== "availability":
+            return availability
+        if self.objectiveF== "time":
+            return time
         return totale # cost, time, reputation, availability, totale, vaaSs_composite
     
     def compare(self, other):

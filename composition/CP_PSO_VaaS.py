@@ -22,7 +22,7 @@ from network_smart.vass import VaaS
 
 class PSO_VaaS():
 
-    def __init__(self, weights: List[float], set_vaaSs:List[VaaS], user_query=None, regions=None) -> None:
+    def __init__(self, weights: List[float], set_vaaSs:List[VaaS], user_query=None, regions=None, function="all") -> None:
         self.weights = weights
         self.unused_vaass =set()
         self.set_vaaSs  = set_vaaSs        
@@ -30,6 +30,7 @@ class PSO_VaaS():
         self.all_solutions =[] # Array of composition
         self.regions = regions
         self.best_solution=None
+        self.functionF = function
 
     def candidate_CVaaS(self, list_of_local_paths):
         L_cp =[]
@@ -189,17 +190,17 @@ class PSO_VaaS():
         #2. generate intiale solutions using candidate_CVaaS function
         compositions, unused = self.candidate_CVaaS(regions_path)
         # Intialize Best solution
-        self.best_solution = composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=compositions[0])
+        self.best_solution = composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=compositions[0], objective_function=self.functionF)
         self.best_solution.obj_func() 
-        
+        fitness = 0
         for c in compositions:
-            self.all_solutions.append(composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=c))  
-        data =[["best_fintess", "cost", "availability", "reputation", "time"]]                 
+            self.all_solutions.append(composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=c, objective_function=self.functionF))  
+        #data =[["best_fintess", "cost", "availability", "reputation", "time"]]                 
         for it in range(0, iterations):   
         
             for sol in self.all_solutions:               
                 # Evaluaiton
-                cost, time, reputation, availability, total, vaas= sol.obj_func() 
+                fitness= sol.obj_func() 
                 # Update best solution
                 #print(self.best_solution.fitnes)
                 if sol.compare(self.best_solution):
@@ -211,10 +212,9 @@ class PSO_VaaS():
                 adjusted, worst = self.cVaaS_adjustment(sol.solution)
                 sol.solution = adjusted
                 sol.update_worst_vaas(worst)
-            cost, time, reputation, availability, total, vaas= self.best_solution.obj_func() 
-            #print("+++++++++++++++++++++++++++++++++++++++++")
-            data.append([self.best_solution.fitnes, cost,  availability, reputation, time])
-        store_cvs(f"results/result_{to_store_result}.csv", data)              
+            fitness= self.best_solution.obj_func() 
+            
+        return fitness         
 
     
     

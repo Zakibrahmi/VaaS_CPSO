@@ -12,7 +12,7 @@ from network_smart.network_region import *
 from composition.composite_vaas import composite_vaas
 
 import pandas as pd
-from test_PSO import create_regions
+from main import create_regions
 
 
 def run_random(regions, user_query, vaas_set, weights):

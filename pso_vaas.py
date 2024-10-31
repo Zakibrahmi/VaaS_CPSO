@@ -12,15 +12,12 @@ from network_smart.network_region import *
 from composition.composite_vaas import composite_vaas
 
 import pandas as pd
-from test_PSO import create_regions
+from main import create_regions
 
 
-def run_pso(regions, user_query, vaas_set, weights):
+def run_pso(regions, user_query, vaas_set, weights, function):
     
-
-    # Define the bounds for your optimization problem using FloatVar
-    #bounds = IntegerVar(lb=0, ub=m - 1, name="taxi_index")
-    
+   
     c = local_paths(regions)
     regions_path = c.run(user_query["source"], user_query["destination"])  
     
@@ -31,15 +28,17 @@ def run_pso(regions, user_query, vaas_set, weights):
     # Extract  regions to be our path:
     traversed_region = regions_path['regions']
     bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
-    print(bounds)
-    problem = composite_vaas(path_regions=regions_path, weights=weights,query=user_query, set_vaas=vaas_set, bounds=bounds, minmax="min")
+
+    problem = composite_vaas(path_regions=regions_path, weights=weights,query=user_query, set_vaas=vaas_set, bounds=bounds, minmax="min", objective_function=function)
     model = PSO.OriginalPSO(epoch=100, pop_size=50, c1=2.05, c2=2.05)
     model.solve(problem)
-
-    print(f"Best agent: {model.g_best}")                    # Encoded solution
-    print(f"Best solution: {model.g_best.solution}")        # Encoded solution
-    print(f"Best fitness: {model.g_best.target.fitness}")
-    print(f"Best real scheduling: {model.problem.decode_solution(model.g_best.solution)}")      # Decoded (Real) solution
+    
+    #print(f"Best agent: {model.g_best}")                    # Encoded solution
+    # print(f"Best solution: {model.g_best.solution}")        # Encoded solution
+    #print(f"Best fitness: {model.g_best.target.fitness}")
+    #print(f"Best real scheduling: {model.problem.decode_solution(model.g_best.solution)}")      # Decoded (Real) solution
+   
+    return model.g_best.target.fitness
 
 if __name__ == '__main__':
     regions = create_regions(number_region=2, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
