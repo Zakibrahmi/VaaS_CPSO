@@ -35,7 +35,7 @@ class composite_vaas(Problem):
         return self.worst_vaas
     def get_current_solution(self):
         return self.current_solution
-    
+
     
     def obj_func(self, x=None):
 
@@ -103,14 +103,14 @@ class composite_vaas(Problem):
 
         # To penalize low reputation and availability 
         reputation = reputation/len(self.vaas_set)
-        if reputation > 1: 
-            reputation = 1/reputation
-        if availability > 1:
-            availability = 1/availability
+        reputation = 1/reputation
+        
+        availability = 1/availability
 
         log_values = log_transform([cost, time, reputation, availability, penalty])
-        totale = self.weights[0]*log_values[0] + self.weights[1]*log_values[1] + self.weights[2]* log_values[2] + self.weights[3]*log_values[3] + log_values[4]
+        totale = self.weights[0]*log_values[0] + self.weights[1]*log_values[1] + self.weights[2]* log_values[2] + self.weights[3]*log_values[3] + 0.2*log_values[4]
         self.fitnes = totale
+        
         if self.objectiveF == "reputation":
             return reputation
         if self.objectiveF == "cost":

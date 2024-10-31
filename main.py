@@ -6,6 +6,7 @@ from network_smart.network_region import *
 from network_smart.vass import VaaS
 import pandas as pd
 from pso_vaas import *
+from random_vaas import *
 
 def create_regions(number_region, min_edges, min_nodes, max_edges, max_nodes ):
     """This function generates a set of regions 
@@ -62,7 +63,7 @@ def generate_subsets(set_name_regions, n):
 
 #vaaSSS = sorted(vaaSSS, key=lambda VaaS: VaaS.get_convered_regions(), reverse=True)
 if __name__ == '__main__':
-   
+    
     # Generate vaas Datasets 
     number_regions= 2
     regions = [i for i in range(number_regions + 1)]
@@ -105,8 +106,8 @@ if __name__ == '__main__':
             res_pso= run_pso(regions_set, user_query, vaas_set, [0.25, 0.25, 0.25, 0.25], function=f)
             data.update({"PSO":res_pso})
             # Ramdom
-
-            data.update({"random":result})
+            random_result= run_random(regions, user_query, vaas_set, [0.2, 0.2, 0.2, 0.2], functionF=f)
+            data.update({"random":random_result})
                
         # Create a DataFrame
         print(pd.DataFrame([data]))
@@ -121,3 +122,5 @@ if __name__ == '__main__':
     # Scenario 2: vaas fix and varying  number of region
     
     # Scenario 3: vaas and region fix and varying  lenght of request
+    
+   
