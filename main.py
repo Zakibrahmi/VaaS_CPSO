@@ -3,38 +3,12 @@ import numpy as np
 from composition.CP_PSO_VaaS import PSO_VaaS
 from network_smart.region import Region
 from network_smart.network_region import *
-from network_smart.vass import VaaS
+
 import pandas as pd
 from pso_vaas import *
 from random_vaas import *
-
-def create_regions(number_region, min_edges, min_nodes, max_edges, max_nodes ):
-    """This function generates a set of regions 
-    
-    Keyword arguments:
-         numer_region: number of region to be created
-        min_edges/min_nodes: the minimum number of edges/nodes that compose the graph of each region
-    Return: set of connected regions. For simplicity, one node are shared between 2 regions
-    """
-    regions =[]
-    uid_from=0
-    for i in range(number_region):
-        num_nodes = VaaS.generate_random_normal(min_nodes, max_nodes)
-        num_edges = VaaS.generate_random_normal(min_edges, max_edges)
-        r= Region(name=str(i), numberNodes=int(num_nodes),numEdges=int(num_edges), uid_from=uid_from)
-        uid_from = int(num_nodes)-1 # to easly connecting region
-        
-        regions.append(r)
-    # Create link between regions
-    for i in range(number_region):
-        for j in range(i + 1, number_region):
-            intersection = [value for value in regions[i].graph.vs["id"] if value in regions[j].graph.vs["id"]]
-            regions[i].addlinkedRegion(regions[j], intersection)
-
-    return regions
-
-
 import random
+from cro import *
 
 def generate_subsets(set_name_regions, n):
     selected_regions = set()  # To keep track of selected regions across all iterations
@@ -73,14 +47,19 @@ if __name__ == '__main__':
     user_query ={'source': 1,'destination':30, 'QoS':{'cost': 8, 'speed':100, 'availability':0.98, 'reputation': 0.8, 'place':2, 'rating':8}}
     
     # Generate regions Datasets 
-    regions_set = create_regions(number_region=number_regions, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
+    regions_set = Region.create_regions(number_region=number_regions, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
      
     # Scenario 1: Compute compositions from regions_set (20 regions) while varying vaas      
     # Read all datasets. They are stored in "./dataset/vaas.csv file"
 
     vaas_dataset = pd.read_csv("./dataset/vaas.csv")["name_dataset"]   
-    functions =["all", "cost","availability", "reputation"]
-    
+    functions =["all", "cost","availability", "reputation", "time"]
+
+    c = local_paths(regions_set)
+    regions_path = c.run(user_query["source"], user_query["destination"])      
+    # Extract  regions to be our path:
+    traversed_region = regions_path['regions']
+    weights = [0.25, 0.25, 0.25, 0.25]
     # Each function is executed on different datasets and different algo
     dfs =[]
     sheet_names =[]
@@ -95,22 +74,26 @@ if __name__ == '__main__':
             for  index, v in vaas.iterrows():
                 vs = VaaS(data=v)
                 vaas_set.append(vs)
-
+            bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
+            problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, objective_function=f)
             data.update({"dataset":d})        
             # run the set of algorihm; we can use loop on the array of algo name.
             # I will do it manully 
-            v = PSO_VaaS([0.25, 0.25, 0.25, 0.25],vaas_set, user_query, regions_set, function=f)
-            result = v.run(5, to_store_result=d)
+            v = PSO_VaaS(weights=weights,set_vaaSs=vaas_set, user_query=user_query, regions= regions_set,function=f)
+            result = v.run( path_region=regions_path, iterations=20)
             data.update({"CPSO":result})
             #PSO 
-            res_pso= run_pso(regions_set, user_query, vaas_set, [0.25, 0.25, 0.25, 0.25], function=f)
+            res_pso= run_pso(problem=problem)
             data.update({"PSO":res_pso})
             # Ramdom
-            random_result= run_random(regions, user_query, vaas_set, [0.2, 0.2, 0.2, 0.2], functionF=f)
+            random_result= run_random(traversed_region=traversed_region, problem=problem, vaas_set=vaas_set)
             data.update({"random":random_result})
+            #CRO 
+            res_cro = run_cro(problem=problem, regions=traversed_region, vaas_set=vaas_set)
+            data.update({"CRO":res_cro})
                
         # Create a DataFrame
-        print(pd.DataFrame([data]))
+        #print(pd.DataFrame([data]))
         dfs.append(pd.DataFrame([data]))
         sheet_names.append(f)
 

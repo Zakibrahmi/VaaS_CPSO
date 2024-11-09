@@ -2,6 +2,7 @@ from igraph import *
 import random
 import numpy as np
 import json
+from utils.util import generate_random_normal
 
 class Region():
     
@@ -80,13 +81,38 @@ class Region():
                                  
             distance += self.graph.es[e]["weight"]
             source_vertex_id = self.graph.es[e].source 
-            target_vertex_id = self.graph.es[e].target
-            
+            target_vertex_id = self.graph.es[e].target            
             path_uid.append(self.graph.vs[source_vertex_id]["id"])
             path_uid.append(self.graph.vs[target_vertex_id]["id"])
        
         return {"uid_region":self.getName(), "nodes": list(set(path_uid)), "weight":distance } # name of the region, path array of id vertex
+   
+    @classmethod
+    def create_regions(cls, number_region, min_edges, min_nodes, max_edges, max_nodes ):
+        """This function generates a set of regions 
         
+        Keyword arguments:
+            numer_region: number of region to be created
+            min_edges/min_nodes: the minimum number of edges/nodes that compose the graph of each region
+        Return: set of connected regions. For simplicity, one node are shared between 2 regions
+        """
+        regions =[]
+        uid_from=0
+        for i in range(number_region):
+            num_nodes = generate_random_normal(min_nodes, max_nodes)
+            num_edges = generate_random_normal(min_edges, max_edges)
+            r= Region(name=str(i), numberNodes=int(num_nodes),numEdges=int(num_edges), uid_from=uid_from)
+            uid_from = int(num_nodes)-1 # to easly connecting region
+            
+            regions.append(r)
+        # Create link between regions
+        for i in range(number_region):
+            for j in range(i + 1, number_region):
+                intersection = [value for value in regions[i].graph.vs["id"] if value in regions[j].graph.vs["id"]]
+                regions[i].addlinkedRegion(regions[j], intersection)
+
+        return regions
+    
     def save_to_json(self):
         """
         Function, which convert an object region to a json file

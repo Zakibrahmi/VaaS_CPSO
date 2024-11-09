@@ -12,36 +12,31 @@ from network_smart.network_region import *
 from composition.composite_vaas import composite_vaas
 
 import pandas as pd
-from main import create_regions
+from utils.util import *
 
 
-def run_pso(regions, user_query, vaas_set, weights, function):
+def run_pso(problem):
     
    
-    c = local_paths(regions)
-    regions_path = c.run(user_query["source"], user_query["destination"])  
+    #c = local_paths(regions)
+    #regions_path = c.run(user_query["source"], user_query["destination"])  
     
     #list_of_local_paths = {'path': 1, 'regions': {0, 1, 3}, 'paths': [{'uid': 0, 'nodes': [0, 1, 9], 'weight': 111.20748446026197}, {'uid': 1, 'nodes': [9, 28, 20], 'weight': 108.66811158549974}]}
     # Run PSO to select vaas for regions: 
     # I will use "Employee Rostering Problem Using Woa Optimizer: https://github.com/thieu1995/mealpy/tree/master
     
     # Extract  regions to be our path:
-    traversed_region = regions_path['regions']
-    bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
+    #traversed_region = regions_path['regions']
+    #bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
 
-    problem = composite_vaas(path_regions=regions_path, weights=weights,query=user_query, set_vaas=vaas_set, bounds=bounds, minmax="min", objective_function=function)
+    #problem = composite_vaas(path_regions=regions_path, weights=weights,query=user_query, set_vaas=vaas_set, bounds=bounds, minmax="min", objective_function=function)
     model = PSO.OriginalPSO(epoch=100, pop_size=50, c1=2.05, c2=2.05)
     model.solve(problem)
     
-    #print(f"Best agent: {model.g_best}")                    # Encoded solution
-    # print(f"Best solution: {model.g_best.solution}")        # Encoded solution
-    #print(f"Best fitness: {model.g_best.target.fitness}")
-    #print(f"Best real scheduling: {model.problem.decode_solution(model.g_best.solution)}")      # Decoded (Real) solution
-   
     return model.g_best.target.fitness
 
 if __name__ == '__main__':
-    regions = create_regions(number_region=2, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
+    regions = Region.create_regions(number_region=2, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
     user_query ={'source': 1,'destination':30, 'QoS':{'cost': 8, 'speed':100, 'availability':0.98, 'reputation': 0.8, 'place':2, 'rating':8}}
     vaas_dataset = pd.read_csv("./dataset/vaas.csv")["name_dataset"]
    

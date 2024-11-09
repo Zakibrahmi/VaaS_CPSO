@@ -15,22 +15,22 @@ import pandas as pd
 #from main import create_regions
 
 
-def run_random(regions, user_query, vaas_set, weights, functionF):    
+def run_random(traversed_region, problem, vaas_set):    
 
     # Define the bounds for your optimization problem using FloatVar
     #bounds = IntegerVar(lb=0, ub=m - 1, name="taxi_index")
     
-    c = local_paths(regions)
-    regions_path = c.run(user_query["source"], user_query["destination"])      
+    #c = local_paths(regions)
+    #regions_path = c.run(user_query["source"], user_query["destination"])      
     # Extract  regions to be our path:
-    traversed_region = regions_path['regions']
+   
     solution= []
     for r in traversed_region:
         vaas = random.choice(range(len(vaas_set)))
         solution.append(vaas)
     
-    bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
-    problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, composite_solution=c, objective_function=functionF)
+    #bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
+    #problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, composite_solution=c, objective_function=functionF)
     return problem.obj_func(solution)
     
 

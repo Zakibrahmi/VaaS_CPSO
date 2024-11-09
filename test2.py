@@ -9,9 +9,9 @@ def log_transform(values, desired_sum=None):
         adjusted_values = log_values
     return adjusted_values
 
-values = [3.6365155159836138, 0.7600834638388854, 0.023977474695476668, 92.31878054871922]
-desired_sum = None  # Set to None to keep the natural sum
-scaled_values = log_transform(values, desired_sum)
 
-print(f"Scaled values: {scaled_values}")
-print(f"Sum of scaled values: {sum(scaled_values)}")
+x = [((185, (0,)), (211, (1,))), ((208, (0,)), (156, (1,))), ((110, (0,)), (109, (1,))), ((146, (0, 1)),)]
+for s in x:
+    print(s)
+    for value, index in s:
+        print(value, index)

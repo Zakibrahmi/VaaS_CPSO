@@ -7,7 +7,7 @@ class local_paths():
     def __init__(self, regions):
         
         # Assumption: 1. One region can contain the source node. 
-        #             2. The number of nodes that represented frontiere node betwwen 2 regions is 1. 
+        #             2. The number of nodes that represented frontiere nodes betwwen 2 regions is 1. 
         
         self.setOftravsedRegions= [] #To store paths af traversed regions
         self.regions = regions #Set of object of type regions. Each region is a graph

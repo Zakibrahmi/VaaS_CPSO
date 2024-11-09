@@ -23,7 +23,7 @@ class VaaS():
             self.facilities=["facility"]
             self.covered_regions =ast.literal_eval(data["coverd_regions"])
             self.number_places= data["number_places"]
-            self.rating= rating= data["rating"]
+            self.rating= data["rating"]
         
         else:
             self.uid = uid
@@ -71,19 +71,8 @@ class VaaS():
     
     def get_reputation(self):
         return self.QoS.get("reputation")
-    
-    def generate_random_normal(min_value, max_value, mean=None, std_dev=None, size=1):
-        # Set default mean and std_dev if not provided
-        if mean is None:
-            mean = (min_value + max_value) / 2
-        if std_dev is None:
-            std_dev = (max_value - min_value) / 6  # Approximately covers the range
-
-        # Generate random numbers
-        random_numbers = np.random.normal(mean, std_dev, size)
-
-        # Clip values to the specified range
-        return np.clip(random_numbers[0], min_value, max_value)
+    def get_speed(self):
+        return self.QoS.get("speed")
     
     def violation(self, QoS_user):
        
@@ -99,16 +88,23 @@ class VaaS():
         """
         penalty = 0      
         if QoS_user['place'] > self.number_places:
-            penalty += (QoS_user['place'] - self.number_places) * 5
+            penalty += abs(QoS_user['place'] - self.number_places) * 5
         if QoS_user['rating'] > self.rating:
-            penalty += (QoS_user['rating'] - self.rating) * 5
-        
+            penalty += abs(QoS_user['rating'] - self.rating) * 5
+        if QoS_user['availability'] > self.get_availability():
+            penalty += abs(QoS_user['availability'] - self.get_availability()) * 5
+        if QoS_user['speed'] > self.get_speed():
+            penalty += abs(QoS_user['speed'] - self.get_speed()) * 5
+        if QoS_user['cost'] > self.get_cost():
+            penalty += abs(QoS_user['cost'] - self.get_cost()) * 5
+        if QoS_user['reputation'] > self.get_reputation():
+            penalty += abs(QoS_user['reputation'] - self.get_reputation()) * 5
+
         return penalty
     
     def generate_subsets(self, set_name_regions, n):
         """This function generates random subset form set_name_regions, 
-            ensuring that each region is selected at least once 
-        
+            ensuring that each region is selected at least once         
         Keyword arguments:
         argument -- description
         Return: return_description

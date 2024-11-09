@@ -38,19 +38,13 @@ class composite_vaas(Problem):
 
     
     def obj_func(self, x=None):
-
         """
         Evaluate a composit VaaSs (a candidate solution) 
         A composit VaaSs has a the following stucture: [{'vaas':object_vaas, 'regions':[id_region]}]        
-        Args:
-            user_query
-            weights
-            path_of_regions: path of regions that VaaSs in composite_vaass  can traversed
-            set_vaaSs
-            return: fitness            
+        return: fitness            
         """
-        # to be able to use the function as the objetcive function of PSO and others algorithms of mealpy
-       
+        
+        # to be able to use the function as the objetcive function of PSO and others algorithms of mealpy        
         if x is not None: # X is a solution from PSO for example, but not  CP_PSO
             x_decoded = self.decode_solution(x)
             x = x_decoded["vaas_var"]
@@ -68,7 +62,7 @@ class composite_vaas(Problem):
         
         cost =0
         time =0
-        reputation =0
+        reputation =1
         availability =1
         # store a map of <region, distance> from the path
         region_distance ={}
@@ -81,7 +75,7 @@ class composite_vaas(Problem):
         vaaSs_composite={} # couple <vaas, fitness>
         penalty =0
         for vaas in self.solution:            
-            reputation+= vaas["vaas"].get_reputation()
+            reputation*= vaas["vaas"].get_reputation()
             availability *=vaas["vaas"].get_availability()
             cost_local =0
             time_local = 0

@@ -178,33 +178,28 @@ class PSO_VaaS():
         """ 
         return any(obj.uid == search_id for obj in objects)
     
-    def run(self, iterations=50, to_store_result=None):
+    def run(self, path_region, iterations=50):
         """The main program         
         Keyword arguments:
         argument -- description
         Return: return_description
         """
-        c = local_paths(self.regions)
-        # example of user query = {"source":1, "destionation":20. "QoS": {...}}
-        regions_path = c.run(self.user_query["source"],self.user_query["destination"])        
+         
         #2. generate intiale solutions using candidate_CVaaS function
-        compositions, unused = self.candidate_CVaaS(regions_path)
+        compositions, unused = self.candidate_CVaaS(path_region)
         # Intialize Best solution
-        self.best_solution = composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=compositions[0], objective_function=self.functionF)
+        self.best_solution = composite_vaas(path_regions=path_region, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=compositions[0], objective_function=self.functionF)
         self.best_solution.obj_func() 
         fitness = 0
         for c in compositions:
-            self.all_solutions.append(composite_vaas(path_regions=regions_path, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=c, objective_function=self.functionF))  
+            self.all_solutions.append(composite_vaas(path_regions=path_region, weights=self.weights,query=self.user_query, set_vaas=self.set_vaaSs, composite_solution=c, objective_function=self.functionF))  
         #data =[["best_fintess", "cost", "availability", "reputation", "time"]]                 
-        for it in range(0, iterations):   
-        
+        for it in range(0, iterations):          
             for sol in self.all_solutions:               
                 # Evaluaiton
                 fitness= sol.obj_func() 
                 # Update best solution
-                #print(self.best_solution.fitnes)
                 if sol.compare(self.best_solution):
-                    #print(self.best_solution.fitnes, sol.fitnes)
                     self.best_solution = copy.deepcopy(sol)
                 #print(self.best_solution.fitnes)
                     

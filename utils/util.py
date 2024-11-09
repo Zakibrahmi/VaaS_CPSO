@@ -3,39 +3,28 @@ import random
 import numpy as np
 from collections import defaultdict
 #from local_paths import *
-from network_smart.region import *
+#from network_smart.region import *
 import math
 import csv
+
+def generate_random_normal(min_value, max_value, mean=None, std_dev=None, size=1):
+    # Set default mean and std_dev if not provided
+    if mean is None:
+        mean = (min_value + max_value) / 2
+    if std_dev is None:
+        std_dev = (max_value - min_value) / 6  # Approximately covers the range
+
+    # Generate random numbers
+    random_numbers = np.random.normal(mean, std_dev, size)
+
+    # Clip values to the specified range
+    return np.clip(random_numbers[0], min_value, max_value)
 
 def store_cvs(file, data):
     with open(file, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(data)
         
-def genEdge(nodes, numberEdge, seed=None, p=0.5):
-    
-    """ 
-       Choses each of the possible [n(n-1)]/2 edges with probability p. 
-       This is the same as binomial_graph and erdos_renyi_graph. 
-       Sometimes called Erdős-Rényi graph, or binomial graph.
-       :Parameters:
-       		- 'nodes': the set of nodes
-        	- 'p': probability for edge creation
-         	- 'seed': seed for random number generator (default=None)            
-
-	"""
-    edges = set()
-    nodeList = range(len(nodes))
-    random.seed(seed)
-    while len(edges) < numberEdge:
-        p1 = random.choice(nodeList)
-        p2 = random.choice(nodeList)
-        if p1!=p2:
-        
-            pair = "\"%s\",\"%s\",-" % (str(nodes[p1]["id"]), str((nodes[p2]["id"])))
-            edges.add(pair)
-
-    return  edges
 
 #All path from source
 visitedList = [[]]
@@ -54,8 +43,8 @@ def getAllPathsRegions(graph, u, d, visited, path, pathsSet):
         # Mark the current node as visited and store in path
         visited[u]= True
         path.append(u)
-        # If current vertex is same as destination, then print
-        # current path[]
+        # If current vertex is same as destination
+        
         current_path = path.copy()
         current_path.append(u)        
         if u == d:
@@ -71,34 +60,7 @@ def getAllPathsRegions(graph, u, d, visited, path, pathsSet):
         # Remove current vertex from path[] and mark it as unvisited
         path.pop()
         visited[u]= False
-#Visialize Graph
 
-def visualizeGraph(graphobject, outputname, ):
-    visual_style = {}
-    out_name = outputname+".png"
-
-    # Set bbox and margin
-    visual_style["bbox"] = (400,400)
-    visual_style["margin"] = 27
-
-    # Set vertex colours
-   # graphobject.vs["color"] = ["red", "green", "blue", "yellow", "orange"]
-
-    # Set vertex size
-    visual_style["vertex_size"] = 45
-
-    # Set vertex lable size
-    visual_style["vertex_label_size"] = 22
-    # Don't curve the edges
-    visual_style["edge_curved"] = False
-
-    # Set the layout
-    my_layout = graphobject.layout_lgl()
-    visual_style["layout"] = my_layout
-
-    # Plot the graph
-    #plot(graphobject, out_name, **visual_style)
-    
 def addEdge(gr, u, v):
         gr[u].append(v)
         
