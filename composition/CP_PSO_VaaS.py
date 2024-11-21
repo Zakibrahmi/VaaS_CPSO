@@ -117,7 +117,7 @@ class PSO_VaaS():
                 self.unused_vaass.add(v)    
         return L_cp_dic, self.unused_vaass
 
-    def cVaaS_adjustment(self, composition_Vaas):
+    def cVaaS_adjustment(self, composition_Vaas, k_worsts=1):
         """ replacing the worst VaaS representative with a fitter one
         arguments:
             composition_Vaas: a composition to be adjusted
@@ -135,6 +135,7 @@ class PSO_VaaS():
         for item in sorted_vaas.items():
             worst_vaas = item
             break
+        # we can loop here to extract the top-k worset vaas
         worst_vaas = worst_vaas[0]
         # How to substitute the worst vaaS, in this version, with a another vaas that cover the same regions covred by the worst 
         substitors = [v for v in self.unused_vaass if (set(worst_vaas.covered_regions).issubset(v.covered_regions) or set(v.covered_regions).issubset(worst_vaas.covered_regions) )]     

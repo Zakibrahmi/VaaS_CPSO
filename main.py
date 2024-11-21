@@ -3,13 +3,13 @@ import numpy as np
 from composition.CP_PSO_VaaS import PSO_VaaS
 from network_smart.region import Region
 from network_smart.network_region import *
-
 import pandas as pd
 from pso_vaas import *
 from random_vaas import *
 import random
 from cro import *
-
+from vaas_ffca import *
+import time
 def generate_subsets(set_name_regions, n):
     selected_regions = set()  # To keep track of selected regions across all iterations
     subsets = []  # List to hold the n subsets
@@ -30,7 +30,7 @@ def generate_subsets(set_name_regions, n):
         
         # Add the additional samples to the subset
         subset.update(additional_samples)
-        print(subset)
+        #print(subset)
         
         subsets.append(subset)  # Add the subset to the list of subsets
     return subsets
@@ -38,72 +38,158 @@ def generate_subsets(set_name_regions, n):
 #vaaSSS = sorted(vaaSSS, key=lambda VaaS: VaaS.get_convered_regions(), reverse=True)
 if __name__ == '__main__':
     
-    # Generate vaas Datasets 
-    number_regions= 2
-    regions = [i for i in range(number_regions + 1)]
-    set_datasets = [300, 600,900, 1200, 1500, 1800, 2100, 2400, 2700, 3000]
-    facilities =['car', 'bus']
-    #VaaS.create_vaas_datasets(set_datasets, "./dataset/vaas/", regions, facilities)
-    user_query ={'source': 1,'destination':30, 'QoS':{'cost': 8, 'speed':100, 'availability':0.98, 'reputation': 0.8, 'place':2, 'rating':8}}
-    
-    # Generate regions Datasets 
-    regions_set = Region.create_regions(number_region=number_regions, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
-     
-    # Scenario 1: Compute compositions from regions_set (20 regions) while varying vaas      
-    # Read all datasets. They are stored in "./dataset/vaas.csv file"
-
-    vaas_dataset = pd.read_csv("./dataset/vaas.csv")["name_dataset"]   
+    set_datasets = [300, 600,900, 1200, 1500, 1800]#, 2100, 2400, 2700, 3000]
+    user_query ={'source': 1,'destination':30, 'QoS':{'cost': 8, 'speed':100, 'availability':0.95, 'reputation': 0.8, 'place':2, 'rating':8}}
+    regions =[10, 20, 30, 40, 50]
     functions =["all", "cost","availability", "reputation", "time"]
-
-    c = local_paths(regions_set)
-    regions_path = c.run(user_query["source"], user_query["destination"])      
-    # Extract  regions to be our path:
-    traversed_region = regions_path['regions']
     weights = [0.25, 0.25, 0.25, 0.25]
-    # Each function is executed on different datasets and different algo
-    dfs =[]
-    sheet_names =[]
-    result= "test"
-    for f in functions:
-        data ={}  
-        for d in vaas_dataset:
-            # proceed each dataset 
-            vaas = pd.read_csv(f"./dataset/vaas/{d}.csv")
-            vaas_set =[]
-            # Generate the set of Vass from the csv file
-            for  index, v in vaas.iterrows():
-                vs = VaaS(data=v)
-                vaas_set.append(vs)
-            bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
-            problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, objective_function=f)
-            data.update({"dataset":d})        
-            # run the set of algorihm; we can use loop on the array of algo name.
-            # I will do it manully 
-            v = PSO_VaaS(weights=weights,set_vaaSs=vaas_set, user_query=user_query, regions= regions_set,function=f)
-            result = v.run( path_region=regions_path, iterations=20)
-            data.update({"CPSO":result})
-            #PSO 
-            res_pso= run_pso(problem=problem)
-            data.update({"PSO":res_pso})
-            # Ramdom
-            random_result= run_random(traversed_region=traversed_region, problem=problem, vaas_set=vaas_set)
-            data.update({"random":random_result})
-            #CRO 
-            res_cro = run_cro(problem=problem, regions=traversed_region, vaas_set=vaas_set)
-            data.update({"CRO":res_cro})
-               
-        # Create a DataFrame
-        #print(pd.DataFrame([data]))
-        dfs.append(pd.DataFrame([data]))
-        sheet_names.append(f)
+    # Generate vaas Datasets 
+    """
+    regions = [i for i in range(50 + 1)]        
+    facilities =['car', 'bus']
+    VaaS.create_vaas_datasets(set_datasets, "./dataset/vaas2/", regions, facilities)
+    """
 
-    # Create an Excel file with multiple sheets
-    with pd.ExcelWriter(f"results/result_{number_regions}.xlsx") as writer:
-        for df, sheet_name in zip(dfs, sheet_names):
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    for number_regions in [50]:       
+        
+        # Generate regions Datasets 
+        regions_set = Region.create_regions(number_region=number_regions, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
+        
+        # Scenario 1: Compute compositions from regions_set (20 regions) while varying vaas      
+        # Read all datasets. They are stored in "./dataset/vaas.csv file"
        
-    # Scenario 2: vaas fix and varying  number of region
+        #vaas_dataset = pd.read_csv("./dataset/vaas.csv")["name_dataset"]   
+        functions =["all", "cost","availability", "reputation", "time"]
+
+        c = local_paths(regions_set)
+        regions_path = c.run(user_query["source"], user_query["destination"])      
+        # Extract  regions to be our path:
+        traversed_region = regions_path['regions']
+        weights = [0.25, 0.25, 0.25, 0.25]
+        # Each function is executed on different datasets and different algo
+        #for sheet
+        data_dict = {f: [] for f in functions}
+        for f in ["all"]:
+            data ={}  
+            for d in set_datasets:
+                
+                # proceed each dataset 
+                vaas = pd.read_csv(f"./dataset/vaas/vaas_{d}.csv")
+                vaas_set =[]
+                # Generate the set of Vass from the csv file
+                for  index, v in vaas.iterrows():
+                    vs = VaaS(data=v)
+                    vaas_set.append(vs)
+                bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
+                problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, objective_function=f)
+                #data.update({"dataset":d})        
+                # run the set of algorihm; we can use loop on the array of algo name.
+                
+                # I will do it manully 
+                v = PSO_VaaS(weights=weights,set_vaaSs=vaas_set, user_query=user_query, regions= regions_set,function=f)
+                start_time_CPSO = time.time()
+                
+                result = v.run(path_region=regions_path, iterations=100)
+                time_CPSO = time.time() - start_time_CPSO
+                #data.update({"CPSO":result})
+                #PSO 
+                start_time =time.time()
+                res_pso= run_pso(problem=problem)
+                time_pso = time.time()- start_time
+                #data.update({"PSO":res_pso})
+                # Ramdom
+                random_result= run_random(traversed_region=traversed_region, problem=problem, vaas_set=vaas_set)
+                #data.update({"random":random_result})
+                #CRO 
+                start_time_cro = time.time()
+                res_cro = run_cro(problem=problem, regions=traversed_region, vaas_set=vaas_set)
+                #data.update({"CRO":res_cro})
+                time_cro = time.time() - start_time_cro
+                # FCA
+                start_time_fca = time.time()
+                res_fca = run_ffca(vaas_set, traversed_region, problem)
+                time_fca = time.time() -start_time_fca
+                #data.update({"FCA":res_fca})
+            
+                data_dict[f].append({"dataset": d, 
+                                      "FCA":time_fca,
+                                      "CRO":time_cro,
+                                      "PSO":time_pso,
+                                      "CPSO":time_CPSO
+                                     })
+               
+        # Create an Excel file with multiple sheets
+        with pd.ExcelWriter(f"results/time_{number_regions}.xlsx") as writer:
+             for f in functions:
+               # Convert the data to a DataFrame
+                df = pd.DataFrame(data_dict[f])                
+                # Write the DataFrame to an Excel sheet
+                df.to_excel(writer, sheet_name=f, index=False)
+    """  
+    # Scenario 2: vaas fix and varying  number of region    
+
+    for d in [3000]:  
+        vaas = pd.read_csv(f"./dataset/vaas/vaas_{d}.csv")
+        vaas_set =[]
+        # Generate the set of Vass from the csv file
+        for  index, v in vaas.iterrows():
+            vs = VaaS(data=v)
+            vaas_set.append(vs)     
     
-    # Scenario 3: vaas and region fix and varying  lenght of request
+        # Each function is executed on different datasets and different algo
+        #for sheet
+        data_dict = {f: [] for f in functions}
+        for f in functions:
+            
+            data ={}  
+            for r in regions:
+                # Generate regions Datasets 
+                regions_set = Region.create_regions(number_region=r, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
+                    
+                c = local_paths(regions_set)
+                regions_path = c.run(user_query["source"], user_query["destination"])      
+                # Extract  regions to be our path:
+                traversed_region = regions_path['regions']
+                # proceed each dataset 
+                
+                bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
+                problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, objective_function=f)
+                #data.update({"dataset":d})        
+                # run the set of algorihm; we can use loop on the array of algo name.
+                
+                # I will do it manully 
+                v = PSO_VaaS(weights=weights,set_vaaSs=vaas_set, user_query=user_query, regions= regions_set,function=f)
+                
+                result = v.run(path_region=regions_path, iterations=100)
+                #data.update({"CPSO":result})
+                #PSO 
+                res_pso= run_pso(problem=problem)
+                #data.update({"PSO":res_pso})
+                # Ramdom
+                random_result= run_random(traversed_region=traversed_region, problem=problem, vaas_set=vaas_set)
+                #data.update({"random":random_result})
+                #CRO 
+                res_cro = run_cro(problem=problem, regions=traversed_region, vaas_set=vaas_set)
+                #data.update({"CRO":res_cro})
+                
+                # FCA
+                res_fca = run_ffca(vaas_set, traversed_region, problem)            
+                data_dict[f].append({"regions": r, 
+                                     "FCA":res_fca,
+                                      "CRO":res_cro,
+                                      "PSO":res_pso,
+                                      "random":random_result,
+                                      "CPSO":result
+                                     })
+               
+        # Create an Excel file with multiple sheets
+        with pd.ExcelWriter(f"results/fix_vaas_{d}.xlsx") as writer:
+             for f in functions:
+               # Convert the data to a DataFrame
+                df = pd.DataFrame(data_dict[f])                
+                # Write the DataFrame to an Excel sheet
+                df.to_excel(writer, sheet_name=f, index=False)
+
+    # Question 3: Impcat of adjustement function in our algo while varing number k of worsts vaas to be adjusted
     
-   
+    """

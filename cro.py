@@ -452,8 +452,7 @@ def run_cro(regions, vaas_set, problem):
     #VaaS_data = load_data("VaaS.json")
     #Regions_data = load_data("Regions.json")
     # Convert data to dictionaries for quick lookup
-    vaas_dict = {vaas.uid: vaas for vaas in vaas_set}
-        
+    vaas_dict = {vaas.uid: vaas for vaas in vaas_set}        
     #r_s = input("Enter the source region (e.g., 'R1'): ").upper()
     #r_t = input("Enter the target region (e.g., 'R5'): ").upper()
     #R_st = find_best_sequence("Regions.json", r_s.upper(), r_t.upper())    
@@ -511,6 +510,7 @@ def test_find_vaas_combinations(R_st_values, VaaS_data):
 #vaas_path = "VaaS.json"
 #VaaS_data = load_vas_data(vaas_path)
 #test_find_vaas_combinations(R_st_values, VaaS_data)
+""""
 regions = Region.create_regions(number_region=2, min_edges=2, min_nodes=20, max_edges=15, max_nodes=30)
 user_query ={'source': 1,'destination':30, 'QoS':{'cost': 8, 'speed':100, 'availability':0.98, 'reputation': 0.8, 'place':2, 'rating':8}}
 vaas_dataset = pd.read_csv("./dataset/vaas.csv")["name_dataset"]
@@ -534,3 +534,4 @@ for d in vaas_dataset:
     problem = composite_vaas(bounds=bounds,path_regions=regions_path, weights=weights,query= user_query, set_vaas= vaas_set, objective_function="all")
 
     print(run_cro(regions=traversed_region,vaas_set=vaas_set, problem=problem))
+"""

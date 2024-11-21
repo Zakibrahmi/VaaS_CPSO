@@ -53,8 +53,9 @@ class composite_vaas(Problem):
             solutionX=[]
             tmp = x.copy()
             for it in x: 
-              if it in tmp: # means that it not yet procedded
-                indices = self.find_indices(it, x)
+              if it in tmp: # It means that it has not yet been processed
+                indices = self.find_indices(it, x)                
+                # Find real indices 
                 solutionX.append({"vaas":self.find_vaas_By_Id(vaas_set=self.vaas_set, uid=it), "regions":indices})
                 tmp = [item for item in tmp if item != 3]
             self.solution = solutionX
@@ -127,10 +128,14 @@ class composite_vaas(Problem):
         return {"solution": vs, "fitness":self.fitnes}
     
     def find_indices(self, arr, x):
-        # List comprehension to find all indices where x occurs in arr
+        # List comprehension to find all regions indices where x occurs in arr
         #indices = [i for i, value in enumerate(arr) if value == x]
-        
-        return np.where(arr == x)[0]
+        indices_tmp = np.where(arr == x)[0]
+        indices=[]
+        for indice in indices_tmp:
+            indices.append(list(self.path_of_regions['regions'])[indice]) # to return the real indice of region
+        return indices
+
     
     def find_vaas_By_Id(self, vaas_set, uid):
         vaas=None

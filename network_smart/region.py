@@ -35,13 +35,13 @@ class Region():
         """ To link current region to another region "region" according to "nodes"        
            # parms: 
                 region
-                uuid
                 nodes: array of frontier nodes. A link is dictionnary  {"Region": "R1", "Nodes": [N1, N2, ..Nn]}        """             
-        exist = np.isin(list(nodes), self.graph.vs["id"])       
-        if exist:
+        exist = np.isin(list(nodes), self.graph.vs["id"])   
+           
+        if len(exist) >0:
             self.linkedRegions.append({"Region":region, "Nodes":nodes})
-        else:
-            print("connot link")
+        #else:
+        #    print("connot link")
             
     # check if the current region is contains a node n
     def containsNode(self, n):    
@@ -102,7 +102,8 @@ class Region():
             num_nodes = generate_random_normal(min_nodes, max_nodes)
             num_edges = generate_random_normal(min_edges, max_edges)
             r= Region(name=str(i), numberNodes=int(num_nodes),numEdges=int(num_edges), uid_from=uid_from)
-            uid_from = int(num_nodes)-1 # to easly connecting region
+            uid_from += int(num_nodes)-1 # to easly connecting region
+            #print(i, int(num_nodes),uid_from )
             
             regions.append(r)
         # Create link between regions

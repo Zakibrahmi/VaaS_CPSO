@@ -164,10 +164,10 @@ class VaaS():
             coverd_regions = list(subset.copy())
 
             #coverd_regions = random.sample(set_name_regions, random.randint(1, len(set_name_regions)-1))
-            cost = clf.generate_random_normal(1, 5) # cost from 1 to 5
-            speed = clf.generate_random_normal(80, 120) #
-            availability = clf.generate_random_normal(0.1, 0.98) 
-            reputation = clf.generate_random_normal(0.1, 0.98) 
+            cost = generate_random_normal(1, 5) # cost from 1 to 5
+            speed = generate_random_normal(80, 120) #
+            availability = generate_random_normal(0.1, 0.98) 
+            reputation = generate_random_normal(0.1, 0.98) 
             QoS = {"cost":cost, "speed":speed, "availability": availability, "reputation":reputation}
             facility =  random.choice(set_facilities)  
             number_places= random.choice([2,4,6])
