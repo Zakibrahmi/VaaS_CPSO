@@ -22,7 +22,7 @@ from network_smart.vass import VaaS
 
 class PSO_VaaS():
 
-    def __init__(self, weights: List[float], set_vaaSs:List[VaaS], user_query=None, regions=None, function="all") -> None:
+    def __init__(self, weights: List[float], set_vaaSs:List[VaaS], user_query=None, regions=None, function="all", k_worsts=1) -> None:
         self.weights = weights
         self.unused_vaass =set()
         self.set_vaaSs  = set_vaaSs        
@@ -31,6 +31,8 @@ class PSO_VaaS():
         self.regions = regions
         self.best_solution=None
         self.functionF = function
+        self.topk_worsts=k_worsts
+        print(self.topk_worsts)
 
     def candidate_CVaaS(self, list_of_local_paths):
         L_cp =[]
@@ -130,28 +132,29 @@ class PSO_VaaS():
             fitness_tmp.update({vaas["vaas"]:f*vaas["vaas"].violation(self.user_query['QoS'])}) 
         # sorted the dictionary of <vaas, vaas_fitness*number_violation>
         # the higher the vaas_fitness*number_violation is, the vaas in the more affecting the global fitness => vaas is the worest
-        sorted_vaas = dict(sorted(fitness_tmp.items(), key=lambda x:x[1], reverse=True)) 
+        if k_worsts > len(fitness_tmp):
+            k_worsts = len(fitness_tmp)
+        sorted_vaas = dict(sorted(fitness_tmp.items(), key=lambda x:x[1], reverse=True)[:k_worsts]) 
         worst_vaas=None
-        for item in sorted_vaas.items():
-            worst_vaas = item
-            break
+        
         # we can loop here to extract the top-k worset vaas
-        worst_vaas = worst_vaas[0]
-        # How to substitute the worst vaaS, in this version, with a another vaas that cover the same regions covred by the worst 
-        substitors = [v for v in self.unused_vaass if (set(worst_vaas.covered_regions).issubset(v.covered_regions) or set(v.covered_regions).issubset(worst_vaas.covered_regions) )]     
-        tmp = composition_Vaas.copy()                        
-        if len(substitors)>0:                            
-            #2. sorted the  set of cover_first_region according to the number of covred regions
-            index=0
-            tmp = composition_Vaas.copy()
-            for vaas in composition_Vaas:
-                if vaas["vaas"] == worst_vaas:
-                    break
-                else:
-                    index+=1            
-            tmp[index]["vaas"] = substitors[0]  
-            #print(composition_Vaas)
-            self.unused_vaass.add(worst_vaas)
+        for item in sorted_vaas.items():
+            worst_vaas = item[0]
+            # How to substitute the worst vaaS, in this version, with a another vaas that cover the same regions covred by the worst 
+            substitors = [v for v in self.unused_vaass if (set(worst_vaas.covered_regions).issubset(v.covered_regions) or set(v.covered_regions).issubset(worst_vaas.covered_regions) )]     
+            tmp = composition_Vaas.copy()                        
+            if len(substitors)>0:                            
+                #2. sorted the  set of cover_first_region according to the number of covred regions
+                index=0
+                tmp = composition_Vaas.copy()
+                for vaas in composition_Vaas:
+                    if vaas["vaas"] == worst_vaas:
+                        break
+                    else:
+                        index+=1            
+                tmp[index]["vaas"] = substitors[0]  
+                #print(composition_Vaas)
+                self.unused_vaass.add(worst_vaas)
              
         else: # it's not possible de sustituate the worst vaas 
             pass
@@ -205,7 +208,7 @@ class PSO_VaaS():
                 #print(self.best_solution.fitnes)
                     
                  # Ajustement
-                adjusted, worst = self.cVaaS_adjustment(sol.solution)
+                adjusted, worst = self.cVaaS_adjustment(sol.solution, self.topk_worsts)
                 sol.solution = adjusted
                 sol.update_worst_vaas(worst)
             fitness= self.best_solution.obj_func() 

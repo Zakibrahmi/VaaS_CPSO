@@ -47,12 +47,14 @@ class local_paths():
                 #Latest region   
                          
                 region = self.getRegionById(temp[len(pr)-1])
+                
                 path = region.getbestPath(int(frontierNode), int(destination)) 
             pathRegion ={}            
             paths.append(path)
             pathRegion.update({"path": uid_path, "regions": pr, "paths":paths, "value": sum_best_path_region+path["weight"]})
             uid_region +=1
             all_best_Path.append(pathRegion)
+            break
         # Get the best Path
         min = 999999999999999999999
         path_Best =None

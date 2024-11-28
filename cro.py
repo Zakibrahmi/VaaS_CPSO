@@ -446,7 +446,7 @@ def cro_optimization(candidates, R_st, vaas_dict, problem, k=3, iterations=100):
     return top_k
     
 """# **Tests on the score of CRO-based VaaS Composition**"""
-def run_cro(regions, vaas_set, problem):
+def run_cro(regions, vaas_set, problem, iterations=100):
 
     # Load data
     #VaaS_data = load_data("VaaS.json")
@@ -467,7 +467,7 @@ def run_cro(regions, vaas_set, problem):
     # Run CRO optimization and get the top-k solutions
     top_k_combinations = cro_optimization(
         candidates=candidates, R_st= R_st, vaas_dict=vaas_dict, problem=problem, k=3,
-        iterations=50
+        iterations=iterations
     )
     
     # Print the top-k best combinations with additional metrics

@@ -15,7 +15,7 @@ import pandas as pd
 from utils.util import *
 
 
-def run_pso(problem):
+def run_pso(problem, iteration=100):
     
    
     #c = local_paths(regions)
@@ -30,7 +30,7 @@ def run_pso(problem):
     #bounds = IntegerVar(lb=[0, ]*len(traversed_region), ub=[len(vaas_set)-1, ]*len(traversed_region), name="vaas_var")
 
     #problem = composite_vaas(path_regions=regions_path, weights=weights,query=user_query, set_vaas=vaas_set, bounds=bounds, minmax="min", objective_function=function)
-    model = PSO.OriginalPSO(epoch=100, pop_size=50, c1=2.05, c2=2.05)
+    model = PSO.OriginalPSO(epoch=iteration, pop_size=50, c1=2.05, c2=2.05)
     model.solve(problem)
     
     return model.g_best.target.fitness

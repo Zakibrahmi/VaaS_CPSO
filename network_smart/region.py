@@ -70,7 +70,7 @@ class Region():
                 return r["Nodes"][0]
     
     def getbestPath(self, source, destination):
-        
+        print(source,destination)
         s = self.graph.vs.find(id=int(source)).index
         d = self.graph.vs.find(id=int(destination)).index
         results = self.graph.get_shortest_paths(s, to=d, weights=self.graph.es["weight"], output="epath")
