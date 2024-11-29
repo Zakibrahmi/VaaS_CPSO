@@ -26,9 +26,10 @@ The repository is organized as follows:
 
 ### Folder Descriptions:
 - **`main.py`**: The main script to execute the solution and experiments.
-- **`netwrok_smart/region.py`**: 
-   ├── **`region.py`**: Script to generate regions datasets for simulations.
-- **`region.py`**: 
+- **`netwrok_smart/region.py`**: Script to generate regions datasets for simulations and others functions.
+- **`netwrok_smart/vaas.py`**: Script to generate VaaSs datasets for simulations and others functions.
+-  **`crop.py, pso.py `**: Scripts of algorithms.
+-  **`composition/`**: contains the main scripts of our solution. 
 - **`utils/`**: Contains reusable helper functions and modules.
 - **`data/`**: Stores datasets generated for the experiments.
 - **`results/`**: Includes results files including csv files.
