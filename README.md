@@ -11,7 +11,7 @@ The solution is designed to generate a **Vehicle-as-a-Service (VaaS) Composition
 Ensure you have Python installed on your system. You can install the required dependencies using:
 ```bash
 pip install -r requirements.txt
-'''
+```
 ## Running the Code
 
 To execute the solution, run the following command:
