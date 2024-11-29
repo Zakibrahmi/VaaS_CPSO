@@ -12,7 +12,8 @@ Ensure you have Python installed on your system. You can install the required de
 ```bash
 pip install -r requirements.txt
 
-# Running the Code
+## Running the Code
+
 To execute the solution, run the following command:
 bash
 Copy code
